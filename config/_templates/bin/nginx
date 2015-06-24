@@ -1,0 +1,93 @@
+#!/bin/bash
+# nginx
+# chkconfig: 345 20 80
+# description: nginx daemon
+# processname: nginx
+
+# To add this as a Centos server init script,
+# symlink into the /etc/init.d directory:
+#    sudo ln -s ${buildout:directory}/bin/nginx /etc/init.d/nginx
+# then register the script:
+#    sudo chkconfig --level 345 nginx on
+
+ARGV="$@"
+NAME=nginx
+NGINX='${nginx:location}/sbin/nginx'
+PIDFILE='${pidfile}'
+LOCKFILE='${lockfile}'
+ERRORLOG='${errorlog}'
+GLOBALS="pid $PIDFILE; lock_file $LOCKFILE; error_log $ERRORLOG;"
+CONFIG='-c ${config}'
+
+ERROR=0
+if [ "x$ARGV" = "x" ] ; then 
+    ARGV="-h"
+fi
+
+case $ARGV in
+start)
+    echo "Starting $NAME..."
+    PID=`$NGINX $CONFIG -g "$GLOBALS" > /dev/null 2>&1 & echo $!`
+    if [ -z $PID ]; then
+        echo "Failed"
+    else
+        echo "Ok"
+    fi
+    ;;
+status)
+    echo "Checking $NAME..."
+    if [ -f $PIDFILE ]; then
+        PID=`cat $PIDFILE`
+        if [ -z '`ps axf | grep "$PID" | grep -v grep`' ]; then
+            echo "Process dead but pidfile exists"
+        else
+            echo "Running"
+        fi
+    else
+        echo "Service not running"
+    fi
+    ;;
+stop)
+    echo "Stopping $NAME..."
+    if [ -f $PIDFILE ]; then
+        kill `cat $PIDFILE`
+        echo "Ok"
+    else
+        echo "pidfile not found"
+    fi
+    ;;
+reload)
+    echo "Reloading $NAME... "
+    if [ -f $PIDFILE ]; then
+        kill -HUP `cat $PIDFILE`
+        echo "Ok"
+    else
+        echo "pidfile not found"
+    fi
+    ;;
+restart)
+    $0 stop
+    $0 start
+    ;;
+console)
+    echo "Starting $NAME in console mode..."
+    $NGINX $CONFIG -g "daemon off; $GLOBALS"
+    echo "Ok"
+    ;;
+reopen_transcript)
+    echo "Reopening $NAME logfiles..."
+    if [ -f $PIDFILE ]; then
+        kill -USR1 `cat $PIDFILE`
+        echo "Ok"
+    else
+        echo "pidfile not found"
+    fi
+    ;;
+configtest)
+    echo "Testing nginx configuration "
+    $NGINX $CONFIG -g "$GLOBALS" -t
+    ;;
+*)
+    echo "Usage: $0 {status|start|stop|restart|reload|console|reopen_transcript|configtest}"
+    exit 1
+esac
