@@ -1,0 +1,30 @@
+*.py[cod]
+*.egg-info
+
+/bin
+/eggs
+/etc
+/parts
+/var
+/src
+/.virtualenv
+/develop-eggs
+
+/cache-downloads/*
+
+/.installed.cfg
+/local*.cfg
+
+/.project
+/.pydevproject
+
+# PyCharm
+/.idea
+
+# Sublime Text
+/*.sublime-*
+/.codeintel
+/data
+
+# Working files/folders
+/-*
